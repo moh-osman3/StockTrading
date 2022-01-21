@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import sqlite3
 from sqlite3 import Error
 
@@ -39,7 +39,45 @@ def index():
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
-    return render_template("signup.html")
+    if request.method == "GET":
+        return render_template("signup.html")
+
+    dct = {}
+    # keys associated with database row
+    keys = ["fname", "lname", "email", "username", "password", "balance"]
+
+    with sqlite3.connect("users.db") as db:
+        cur = db.cursor()
+
+        # find highest valid id in table 
+        cur.execute("SELECT max(id) FROM users")
+        lastid = cur.fetchone()[0]
+        if lastid == None:
+            lastid = -1
+        dct["id"] = lastid + 1
+
+        for key in keys:
+            dct[key] = request.form.get(key)
+            print(dct[key])
+            # check that usernames and password are valud
+            if key == "password":
+                if dct[key] != request.form.get("confirm-password"):
+                    return render_template("error.html", error="Make sure your passwords match!")
+            if key == "username":
+                cur.execute("SELECT username FROM users WHERE username='{}'".format(dct[key]))
+                if len(cur.fetchall()) > 0:
+                    return render_template("error.html", error="Username already exists!")
+
+        cur.execute("INSERT INTO users VALUES {}".format(tuple(dct.values())))
+        # for testing -- checking the rows in my db
+        for row in cur.execute("SELECT * FROM users"):
+            print(row)     
+        db.commit()
+
+         
+          
+
+    return render_template("index.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

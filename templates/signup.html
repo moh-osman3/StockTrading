@@ -1,0 +1,30 @@
+{% extends "index.html" %}
+
+{% block body %}
+
+<script>
+    function displayConfirmation() {
+        confirm("Is all the info you entered accurate?");
+    }
+</script>
+
+<h1> Sign Up</h1>
+<form class="appform" method="post" onsubmit="displayConfirmation()">
+    <label for="fname">First Name:</label><br>
+    <input type="text" id="fname" name="fname" maxlength="255" required><br><br>
+    <label for="lname">Last Name:</label><br>
+    <input type="text" id="lname" name="lname" maxlength="255" required><br><br>
+    <label for="email">Email:</label><br>
+    <input type="text" id="email" name="email" maxlength="400" required><br><br>
+    <label for="username">Username:</label><br>
+    <input type="text" id="username" name="username" maxlength="255" required><br><br>
+    <label for="password">Password:</label><br>
+    <input type="text" id="password" name="password" maxlength="255" required><br><br>
+    <label for="confirm-password">Confirm Password:</label><br>
+    <input type="text" id="confirm-password" name="confirm-password" maxlength="255" required><br><br>
+    <label for="balance">Enter Starting Balance:</label><br>
+    <input type="number" id="balance" name="balance" min="0" max="10000000" step=".01" required><br><br>
+    <input type="submit" id="submit" name="submit"><br>
+</form>
+
+{% endblock %}
