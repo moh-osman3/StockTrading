@@ -1,0 +1,3 @@
+#!/bin/sh
+PIDD=$(ps aux | pgrep -f flask)
+kill -9 $PIDD

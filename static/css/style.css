@@ -1,0 +1,31 @@
+
+body {
+    margin: 0;
+    background-color: rgb(236, 215, 215);
+}
+h1 {
+    color: purple;
+    text-align: center;
+    font-size: 3vw;
+}
+
+a {
+    color: purple;
+}
+.navbar {
+    background-color: rgb(138, 189, 184);
+    padding: 2vw;
+    border: .1vw solid green;
+    word-spacing: 2em;
+    font-size: 2vw;
+    text-align: right;
+}
+
+.title {
+    font-style: "Papyrus";
+    font-size: 3vw;
+    color: purple;
+    text-align: left;
+    word-spacing: .2vw;
+    line-height: 8vw;
+}
