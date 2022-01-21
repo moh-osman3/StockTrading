@@ -29,3 +29,15 @@ a {
     word-spacing: .2vw;
     line-height: 8vw;
 }
+
+.appform {
+    width: 10vw;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 2%;
+    font-style: italic;
+    font-size: large;
+    color: purple;
+    font-weight: bold;
+}

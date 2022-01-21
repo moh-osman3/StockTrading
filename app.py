@@ -25,6 +25,8 @@ cur.execute('''
                 fname varchar(255),
                 lname varchar(255),
                 email varchar(400),
+                username varchar(255),
+                password varchar(255),
                 balance FLOAT
             )
             ''')

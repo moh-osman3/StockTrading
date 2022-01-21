@@ -1,23 +1,4 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">
-    <title></title>
-  </head>
-  <body>
-    
-    <div class="navbar">
-      <div class="title">
-          OzTech Trading
-      </div>
-      <a href="/">Home</a>
-      <a href="/signup">Signup</a>
-      <a href="/login">Login</a>
-      <a href="/buy">Buy</a>
-      <a href="/sell">Sell</a>
-    </div><br><br>
+{% extends "layout.html" %}
+{% block body %}
     <h1>Sign up or Login to start trading today!</h1>
-
-  </body>
-</html>
+{% endblock %}
