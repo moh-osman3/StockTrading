@@ -8,6 +8,8 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key="secret_key"
 app.config['SESSION_TYPE'] = 'filesystem'
 
+ERR_USER_NOT_FOUND = "Username not found!"
+
 # sqlite database setup to store all users with accounts on record
 def create_connection(path):
     connection = None
@@ -23,7 +25,7 @@ db = create_connection("users.db")
 cur = db.cursor()
 
 cur.execute('''
-            CREATE TABLE users (
+            CREATE TABLE if not exists users (
                 id INT PRIMARY KEY,
                 fname varchar(255),
                 lname varchar(255),
@@ -33,11 +35,18 @@ cur.execute('''
                 balance FLOAT
             )
             ''')
+
 db.commit()
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if "user" not in session or session["user"] == None:
+        session["user"] = None
+        return render_template("index.html",
+           display="Sign up or Login to start trading today!")
+
+    return render_template("index.html",
+       display="Welcome, {}!".format(session["user"]))
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -89,21 +98,36 @@ def login():
         cur = db.cursor()
         username = request.form.get("username")
         password = request.form.get("password")
+        print(username)
+        #for row in cur.execute("SELECT password FROM users WHERE username='{}'".format(username)):
+        #    print(row)     
+
         cur.execute("SELECT password FROM users WHERE username='{}'".format(username))
-        password_from_db = cur.fetchone()[0]
-        
+        fetched = cur.fetchone()
+        if fetched == None:
+            return render_template("error.html", error=ERR_USER_NOT_FOUND) 
+
+        password_from_db = fetched[0]
+
         if password_from_db == None:
-            return render_template("error.html", error="Username not found!") 
+            return render_template("error.html", error=ERR_USER_NOT_FOUND) 
 
         if password_from_db != password:
             return render_template("error.html", error="The username and password entered do not match!")
 
         session['user'] = username
+        session['logged_in'] = True
 
     print(session['user'])
     return redirect('/')
 
     
+@app.route("/logout")
+def logout():
+    session['user'] = None
+    return redirect("/")
+
+
 @app.route("/buy", methods=["GET", "POST"])
 def buy():
     # make sure user is logged in before they can buy
@@ -139,6 +163,9 @@ def quote():
         cur = db.cursor()
         cur.execute("SELECT balance FROM users WHERE username='{}'".format(session["user"]))
         cur_balance = cur.fetchone()[0]
+
+        if cur_balance == None:
+            return render_template("error.html", error=ERR_USER_NOT_FOUND)
         print(cur_balance)
 
         # make sure the transaction is valid
@@ -146,9 +173,6 @@ def quote():
             return render_template("error.html", error="Balance is too low to complete transaction!")
         
         cur.execute("UPDATE users SET balance='{}' WHERE username='{}'".format(cur_balance - cost, session["user"]))
-        cur.execute("SELECT balance FROM users WHERE username='{}'".format(session["user"]))
-        cur_balance = cur.fetchone()[0]
-        print(cur_balance)
         db.commit()
 
     return redirect("/")

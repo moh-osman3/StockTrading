@@ -13,10 +13,15 @@
           OzTech Trading
       </div>
       <a href="/">Home</a>
-      <a href="/signup">Signup</a>
-      <a href="/login">Login</a>
       <a href="/buy">Buy</a>
       <a href="/sell">Sell</a>
+      {% if session['user'] %}
+        <a href="/logout">Logout</a>
+      {% else %}
+        <a href="/signup">Signup</a>
+        <a href="/login">Login</a>
+        
+      {% endif %}
     </div><br><br>
     {% block body %}
     {% endblock %}
