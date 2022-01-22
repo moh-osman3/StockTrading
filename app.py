@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 from sqlite3 import Error
+from lookup import get_stock_data
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -74,9 +75,38 @@ def signup():
             print(row)     
         db.commit()
 
-    return render_template("index.html")
+    return redirect("/")
 
 
+
+
+
+@app.route("/buy", methods=["GET", "POST"])
+def buy():
+    if request.method == "GET":
+        return render_template("buy.html")
+    
+    requested_symbol = request.form.get("stock-symbol")
+    num_shares = request.form.get("numshares")
+    quote = get_stock_data(requested_symbol)
+    print(quote)
+
+    return redirect(url_for("quote", name=quote["name"], price=quote["price"],
+                    symbol=quote["symbol"], shares=num_shares))
+
+@app.route("/quote", methods=["GET", "POST"])
+def quote():
+    if request.method == "GET"
+        name = request.args["name"]
+        price = request.args["price"]
+        symbol = request.args["symbol"]
+        shares = request.args["shares"]
+        cost = float(shares) * float(price)
+
+        return render_template("quote.html", name=name, price=price,
+                               symbol=symbol, shares=shares, cost=cost)
+
+    redirect("/")
 
 
 if __name__ == "__main__":

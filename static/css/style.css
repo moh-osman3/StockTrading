@@ -41,3 +41,18 @@ a {
     color: purple;
     font-weight: bold;
 }
+
+.quote {
+    display: inline-block;
+    text-align: left;
+    background-color: white;
+    color: purple;
+    font-size: 2vw;
+    font-style: "Papyrus";
+    padding: 1%;
+}
+
+#submit {
+    font-size: 2vw;
+    font-weight: bold;
+}

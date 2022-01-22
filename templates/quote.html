@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div style="text-align: center;">
+  <div class="quote">
+    <h1>Quote Summary:</h1><br>
+    Stock Name: {{ name }} <br>
+    Stock Symbol: {{ symbol }}<br>
+    Stock Price: {{ price }}<br>
+    Shares: {{ shares }}<br>
+    Total Cost: {{ cost }}<br>
+  </div>
+</div>
+
+<script>
+    function confirmPurchase() {
+        confirm("Is your order information correct?");
+    }
+</script>
+<form class="appform" method="post" onsubmit="confirmPurchase()">
+  <input type="submit" id="submit" name="submit" value="confirm order">
+</form>
+{% endblock %}

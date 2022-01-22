@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<h1> Enter Your Stock Order Below</h1>
+<form class="appform" method="post">
+    <label for="stock-symbol">Enter Stock Symbol</label><br>
+    <input type="text" id="stock-symbol" name="stock-symbol" maxlength="255" required><br><br>
+    <label for="numshares">Number of Shares</label><br>
+    <input type="number" id="numshares" name="numshares" min="1" required><br><br>
+    <input type="submit" id="submit" name="submit">
+</form>
+
+{% endblock %}
