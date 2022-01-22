@@ -37,6 +37,7 @@ db.commit()
 def index():
     return render_template("index.html")
 
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "GET":
@@ -58,7 +59,6 @@ def signup():
 
         for key in keys:
             dct[key] = request.form.get(key)
-            print(dct[key])
             # check that usernames and password are valud
             if key == "password":
                 if dct[key] != request.form.get("confirm-password"):
@@ -74,10 +74,10 @@ def signup():
             print(row)     
         db.commit()
 
-         
-          
-
     return render_template("index.html")
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
