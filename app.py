@@ -124,22 +124,36 @@ def buy():
 
 @app.route("/quote", methods=["GET", "POST"])
 def quote():
-    if request.method == "GET":
-        name = request.args["name"]
-        price = request.args["price"]
-        symbol = request.args["symbol"]
-        shares = request.args["shares"]
-        cost = float(shares) * float(price)
+    name = request.args["name"]
+    price = request.args["price"]
+    symbol = request.args["symbol"]
+    shares = request.args["shares"]
+    cost = float(shares) * float(price)
 
+    if request.method == "GET":
         return render_template("quote.html", name=name, price=price,
                                symbol=symbol, shares=shares, cost=cost)
 
     print(session["user"])
+    with sqlite3.connect("users.db") as db:
+        cur = db.cursor()
+        cur.execute("SELECT balance FROM users WHERE username='{}'".format(session["user"]))
+        cur_balance = cur.fetchone()[0]
+        print(cur_balance)
 
+        # make sure the transaction is valid
+        if cost > cur_balance:
+            return render_template("error.html", error="Balance is too low to complete transaction!")
+        
+        cur.execute("UPDATE users SET balance='{}' WHERE username='{}'".format(cur_balance - cost, session["user"]))
+        cur.execute("SELECT balance FROM users WHERE username='{}'".format(session["user"]))
+        cur_balance = cur.fetchone()[0]
+        print(cur_balance)
+        db.commit()
 
     return redirect("/")
 
 
 if __name__ == "__main__":
     app.run(debug=True)
-    session['user'] = None
+    session["user"] = None
