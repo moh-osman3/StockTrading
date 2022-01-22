@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 from sqlite3 import Error
 from lookup import get_stock_data
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.secret_key="secret_key"
+app.config['SESSION_TYPE'] = 'filesystem'
 
 # sqlite database setup to store all users with accounts on record
 def create_connection(path):
@@ -34,7 +36,6 @@ cur.execute('''
 db.commit()
 
 @app.route("/")
-
 def index():
     return render_template("index.html")
 
@@ -74,15 +75,41 @@ def signup():
         for row in cur.execute("SELECT * FROM users"):
             print(row)     
         db.commit()
+    session["user"] = dct["username"]
 
     return redirect("/")
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
 
+    with sqlite3.connect("users.db") as db:
+        cur = db.cursor()
+        username = request.form.get("username")
+        password = request.form.get("password")
+        cur.execute("SELECT password FROM users WHERE username='{}'".format(username))
+        password_from_db = cur.fetchone()[0]
+        
+        if password_from_db == None:
+            return render_template("error.html", error="Username not found!") 
 
+        if password_from_db != password:
+            return render_template("error.html", error="The username and password entered do not match!")
 
+        session['user'] = username
+
+    print(session['user'])
+    return redirect('/')
+
+    
 @app.route("/buy", methods=["GET", "POST"])
 def buy():
+    # make sure user is logged in before they can buy
+    if session["user"] == None:
+        return render_template("error.html", error="Please sign up or log in")
+
     if request.method == "GET":
         return render_template("buy.html")
     
@@ -94,9 +121,10 @@ def buy():
     return redirect(url_for("quote", name=quote["name"], price=quote["price"],
                     symbol=quote["symbol"], shares=num_shares))
 
+
 @app.route("/quote", methods=["GET", "POST"])
 def quote():
-    if request.method == "GET"
+    if request.method == "GET":
         name = request.args["name"]
         price = request.args["price"]
         symbol = request.args["symbol"]
@@ -106,8 +134,12 @@ def quote():
         return render_template("quote.html", name=name, price=price,
                                symbol=symbol, shares=shares, cost=cost)
 
-    redirect("/")
+    print(session["user"])
+
+
+    return redirect("/")
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+    session['user'] = None
