@@ -9,6 +9,7 @@ def get_stock_data(symbol):
                           "{}/quote?token={}".format(symbol, token))
     except re.exceptions.ConnectionError:
         print("Could not connect to the url")
+        return None
 
     quote = response.json()
     # get desired info from the response

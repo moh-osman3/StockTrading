@@ -125,10 +125,10 @@ def logout():
     session['user'] = None
     return redirect("/")
 
-
 @app.route("/buy", methods=["GET", "POST"])
-def buy():
+def request_transaction():
     # make sure user is logged in before they can buy
+    print(request.url_rule)
     if session["user"] == None:
         return render_template("error.html", error="Please sign up or log in")
 
@@ -147,10 +147,10 @@ def buy():
 @app.route("/quote", methods=["GET", "POST"])
 def quote():
     name = request.args["name"]
-    price = request.args["price"]
+    price = float(request.args["price"])
     symbol = request.args["symbol"]
-    shares = request.args["shares"]
-    cost = float(shares) * float(price)
+    shares = float(request.args["shares"])
+    cost = shares * price
 
     if request.method == "GET":
         return render_template("quote.html", name=name, price=price,
@@ -161,7 +161,11 @@ def quote():
     with sqlite3.connect("users.db") as db:
         cur = db.cursor()
         cur.execute("SELECT balance FROM users WHERE username='{}'".format(session["user"]))
-        cur_balance = cur.fetchone()[0]
+        fetch = cur.fetchone()
+        if fetch == None:
+            return render_template("error.html", error=ERR_USER_NOT_FOUND)
+
+        cur_balance = fetch[0]
 
         if cur_balance == None:
             return render_template("error.html", error=ERR_USER_NOT_FOUND)
@@ -181,30 +185,43 @@ def quote():
     with sqlite3.connect("users.db") as db:
         cur = db.cursor()
 
-        cur.execute("CREATE TABLE if not exists {} ("
-                    "symbol VARCHAR(255) PRIMARY KEY,"
-                    "numshares INT,"
-                    "costper FLOAT,"
-                    "totalcost FLOAT)".format(session["user"]))
+        cur.execute(f"CREATE TABLE if not exists {session['user']} ("
+                     "symbol VARCHAR(255) PRIMARY KEY,"
+                     "numshares INT,"
+                     "avgcostper FLOAT,"
+                     "totalcost FLOAT,"
+                     "return FLOAT)")
 
         # I expect there is a more succinct way to run the below queries
         # i.e INSERT OR UPDATE if symbol is in table
-        cur.execute(f"SELECT totalcost FROM {session['user']} "
+        cur.execute(f"SELECT totalcost, numshares FROM {session['user']} "
                     f"WHERE symbol='{symbol}'")
-        fetch = cur.fetchone()
+        fetch = cur.fetchall()
+        print(fetch)
         # if symbol is not found in table (first time buying stock)
-        if fetch == None:
+        if fetch == []:
             cur.execute(f"INSERT INTO {session['user']} VALUES "
-                        f"('{symbol}', '{shares}', '{price}', '{cost}')")
+                        f"('{symbol}', '{shares}', '{price}', '{cost}', '{0}')")
         else:   
-            cur_total = fetch[0]
-            print(f"cur total: {cur_total}")
+            cur_total = fetch[0][0]
+            cur_shares = fetch[0][1]
+            total_cost = cur_total + cost # amt paid for shares
+            total_shares = shares + cur_shares
+            avgper = total_cost / total_shares # avg cost per share
+            total_value = price * total_shares # current market value of stocks
+            print(total_value)
+            print(total_cost)
+            return_on_invest = total_value - total_cost
+            print(f"cur total: {cur_total}, {cur_shares}")
 
-            cur.execute(f"UPDATE {session['user']} SET numshares='{shares}', "
-                        f"costper='{price}', totalcost='{cur_total+cost}'")
+            cur.execute(f"UPDATE {session['user']} "
+                        f"SET numshares='{total_shares}', "
+                        f"avgcostper='{total_shares}', "
+                        f"totalcost='{total_cost}', "
+                        f"return='{return_on_invest}'")
         
         for row in cur.execute(f"SELECT * FROM {session['user']}"):
-            print(row)     
+            print(row)
         db.commit()
 
         
