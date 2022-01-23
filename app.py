@@ -116,7 +116,6 @@ def login():
         session['user'] = username
         session['logged_in'] = True
 
-    print(session['user'])
     return redirect('/')
 
     
@@ -185,7 +184,7 @@ def quote():
         ret = complete_sell_transaction(symbol, shares, price, cost, session['user'])
         if ret == -1:
            return render_template("error.html", error="You must buy stocks before trying to sell!")
-           
+
     return redirect("/")
 
 
