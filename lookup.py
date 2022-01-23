@@ -1,6 +1,7 @@
 import requests as re
 import sqlite3
 import os
+from flask import render_template
 
 def get_stock_data(symbol):
     # try and connect to iex api
@@ -71,5 +72,46 @@ def complete_buy_transaction(symbol, shares, price, cost, user):
         for row in cur.execute(f"SELECT * FROM {user}"):
             print(row)
         db.commit()
+
+
+def complete_sell_transaction(symbol, shares, price, cost, user):
+    try:
+        with sqlite3.connect("users.db") as db:
+            cur = db.cursor()
+
+            cur.execute(f"SELECT totalcost, numshares FROM {user} "
+                        f"WHERE symbol='{symbol}'")
+            fetch = cur.fetchall()
+
+            if fetch == []:
+                return -1
+            
+            cur_total = fetch[0][0]
+            cur_shares = fetch[0][1]
+            total_cost = cur_total - cost # amt paid for shares
+            total_shares = cur_shares - shares
+            avgper = round(total_cost / total_shares, 2) # avg cost per share
+            total_value = round(price * total_shares, 2) # current market value of stocks
+            print(total_value)
+            print(total_cost)
+            return_on_invest = total_value - total_cost
+            print(f"cur total: {cur_total}, {cur_shares}")
+
+            cur.execute(f"UPDATE {user} "
+                        f"SET numshares='{total_shares}', "
+                        f"avgcostper='{avgper}', "
+                        f"totalcost='{round(total_cost,2)}', "
+                        f"return='{round(return_on_invest,2)}'"
+                        f"WHERE symbol='{symbol}'")
+            
+            for row in cur.execute(f"SELECT * FROM {user}"):
+                print(row) 
+            db.commit()
+        return 0
+    except sqlite3.OperationalError:
+        return -1
+        return render_template("error.html", error="You must buy stocks before trying to sell!")
+     
+
 if __name__ == "__main__":
     get_stock_data("NFLX")

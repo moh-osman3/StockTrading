@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 from sqlite3 import Error
-from lookup import get_stock_data, complete_buy_transaction
+from lookup import get_stock_data, complete_buy_transaction, complete_sell_transaction
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -181,7 +181,11 @@ def quote():
 
     if request.args["transaction_type"] == "/buy":
         complete_buy_transaction(symbol, shares, price, cost, session['user'])
-
+    else:
+        ret = complete_sell_transaction(symbol, shares, price, cost, session['user'])
+        if ret == -1:
+           return render_template("error.html", error="You must buy stocks before trying to sell!")
+           
     return redirect("/")
 
 
