@@ -98,11 +98,9 @@ def login():
         cur = db.cursor()
         username = request.form.get("username")
         password = request.form.get("password")
-        print(username)
-        #for row in cur.execute("SELECT password FROM users WHERE username='{}'".format(username)):
-        #    print(row)     
 
         cur.execute("SELECT password FROM users WHERE username='{}'".format(username))
+
         fetched = cur.fetchone()
         if fetched == None:
             return render_template("error.html", error=ERR_USER_NOT_FOUND) 
@@ -159,6 +157,7 @@ def quote():
                                symbol=symbol, shares=shares, cost=cost)
 
     print(session["user"])
+    # update balances in global table. 
     with sqlite3.connect("users.db") as db:
         cur = db.cursor()
         cur.execute("SELECT balance FROM users WHERE username='{}'".format(session["user"]))
@@ -174,6 +173,47 @@ def quote():
         
         cur.execute("UPDATE users SET balance='{}' WHERE username='{}'".format(cur_balance - cost, session["user"]))
         db.commit()
+    
+
+        print(f"UPDATE {session['user']} SET numshares='{shares}',"
+              f"costper='{price}', totalcost='{cost}'")
+    # create a table for the specific user if one does not already exist
+    with sqlite3.connect("users") as db:
+        cur = db.cursor()
+
+        cur.execute("CREATE TABLE if not exists {} ("
+                    "symbol VARCHAR(255) PRIMARY KEY,"
+                    "numshares INT,"
+                    "costper FLOAT,"
+                    "totalcost FLOAT)".format(session["user"]))
+
+        # I expect there is a more succinct way to run the below queries
+        # i.e INSERT OR UPDATE if symbol is in table
+        cur.execute(f"SELECT totalcost FROM {session['user']} "
+                    f"WHERE symbol='{symbol}'")
+        fetch = cur.fetchone()
+        # if symbol is not found in table (first time buying stock)
+        if fetch == None:
+            cur.execute(f"INSERT INTO {session['user']} VALUES "
+                        f"('{symbol}', '{shares}', '{price}', '{cost}')")
+        else:   
+            cur_total = fetch[0]
+            print(f"cur total: {cur_total}")
+
+            cur.execute(f"UPDATE {session['user']} SET numshares='{shares}', "
+                        f"costper='{price}', totalcost='{cur_total+cost}'")
+        
+        for row in cur.execute(f"SELECT * FROM {session['user']}"):
+            print(row)     
+        db.commit()
+        #            f"WHERE symbol='{}') 
+        #cur.execute(f"IF EXISTS (SELECT * FROM {session["user"]} WHERE symbol='{symbol}')"
+        #            f"UPDATE {session["user"]} SET numshares='{num_shares}', costper='{price}', totalcost='{}'"
+        #            f"WHERE symbol='{}'"
+        #            "ELSE ")
+
+        
+
 
     return redirect("/")
 
