@@ -1,7 +1,6 @@
 import requests as re
 import sqlite3
 import os
-from flask import render_template
 
 def get_stock_data(symbol):
     # try and connect to iex api

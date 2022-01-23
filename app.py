@@ -73,11 +73,11 @@ def signup():
             # check that usernames and password are valud
             if key == "password":
                 if dct[key] != request.form.get("confirm-password"):
-                    return render_template("error.html", error="Make sure your passwords match!")
+                    return redirect(url_for("error", error="Make sure your passwords match!"))
             if key == "username":
                 cur.execute("SELECT username FROM users WHERE username='{}'".format(dct[key]))
                 if len(cur.fetchall()) > 0:
-                    return render_template("error.html", error="Username already exists!")
+                    return redirect(url_for("error", error="Username already exists!"))
 
         cur.execute("INSERT INTO users VALUES {}".format(tuple(dct.values())))
         # for testing -- checking the rows in my db
@@ -103,15 +103,15 @@ def login():
 
         fetched = cur.fetchone()
         if fetched == None:
-            return render_template("error.html", error=ERR_USER_NOT_FOUND) 
+            return redirect(url_for("error", error=ERR_USER_NOT_FOUND))
 
         password_from_db = fetched[0]
 
         if password_from_db == None:
-            return render_template("error.html", error=ERR_USER_NOT_FOUND) 
+            return redirect(url_for("error", error=ERR_USER_NOT_FOUND))
 
         if password_from_db != password:
-            return render_template("error.html", error="The username and password entered do not match!")
+            return redirect(url_for("error", error="The username and password entered do not match!"))
 
         session['user'] = username
         session['logged_in'] = True
@@ -131,7 +131,7 @@ def request_transaction():
     # make sure user is logged in before they can buy
     print(request.url_rule)
     if session["user"] == None:
-        return render_template("error.html", error="Please sign up or log in")
+        return redirect(url_for("error", error="Please sign up or log in"))
 
     if request.method == "GET":
         return render_template("transaction.html")
@@ -163,17 +163,17 @@ def quote():
         cur.execute("SELECT balance FROM users WHERE username='{}'".format(session["user"]))
         fetch = cur.fetchone()
         if fetch == None:
-            return render_template("error.html", error=ERR_USER_NOT_FOUND)
+            return redirect(url_for("error", error=ERR_USER_NOT_FOUND))
 
         cur_balance = fetch[0]
 
         if cur_balance == None:
-            return render_template("error.html", error=ERR_USER_NOT_FOUND)
+            return redirect(url_for("error", error=ERR_USER_NOT_FOUND))
         print(cur_balance)
 
         # make sure the transaction is valid
         if cost > cur_balance:
-            return render_template("error.html", error="Balance is too low to complete transaction!")
+            return redirect(url_for("error", error="Balance is too low to complete transaction!"))
         
         cur.execute("UPDATE users SET balance='{}' WHERE username='{}'".format(cur_balance - cost, session["user"]))
         db.commit()
@@ -183,9 +183,15 @@ def quote():
     else:
         ret = complete_sell_transaction(symbol, shares, price, cost, session['user'])
         if ret == -1:
-           return render_template("error.html", error="You must buy stocks before trying to sell!")
+           return redirect(url_for("error", error="You must buy stocks before trying to sell!"))
 
     return redirect("/")
+
+
+@app.route("/error")
+def error():
+    error_message = request.args["error"]
+    return srender_template("error.html", error=error_message)
 
 
 if __name__ == "__main__":
