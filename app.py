@@ -128,21 +128,20 @@ def logout():
 @app.route("/sell", methods=["GET", "POST"])
 @app.route("/buy", methods=["GET", "POST"])
 def request_transaction():
+    transaction_type = str(request.url_rule).lstrip("/")
     # make sure user is logged in before they can buy
-    print(request.url_rule)
     if session["user"] == None:
         return redirect(url_for("error", error="Please sign up or log in"))
 
     if request.method == "GET":
-        return render_template("transaction.html")
+        return render_template("transaction.html", type=transaction_type.capitalize())
     
     requested_symbol = request.form.get("stock-symbol")
     num_shares = request.form.get("numshares")
     quote = get_stock_data(requested_symbol)
     print(quote)
-
     return redirect(url_for("quote", name=quote["name"], price=quote["price"],
-                    symbol=quote["symbol"], shares=num_shares, transaction_type=request.url_rule))
+                    symbol=quote["symbol"], shares=num_shares, transaction_type=transaction_type))
 
 
 @app.route("/quote", methods=["GET", "POST"])
@@ -152,9 +151,10 @@ def quote():
     symbol = request.args["symbol"]
     shares = float(request.args["shares"])
     cost = round(price * shares, 2)
+    transaction_type = request.args["transaction_type"]
     if request.method == "GET":
-        return render_template("quote.html", name=name, price=price,
-                               symbol=symbol, shares=shares, cost=cost)
+        return render_template("quote.html", name=name, price=price, symbol=symbol,
+                               shares=shares, cost=cost, type=transaction_type.capitalize())
 
     print(session["user"])
     # update balances in global table. 
@@ -178,12 +178,14 @@ def quote():
         cur.execute("UPDATE users SET balance='{}' WHERE username='{}'".format(cur_balance - cost, session["user"]))
         db.commit()
 
-    if request.args["transaction_type"] == "/buy":
+    if transaction_type == "buy":
         complete_buy_transaction(symbol, shares, price, cost, session['user'])
     else:
         ret = complete_sell_transaction(symbol, shares, price, cost, session['user'])
         if ret == -1:
            return redirect(url_for("error", error="You must buy stocks before trying to sell!"))
+        elif ret == -2:
+            return redirect(url_for("error", error="You do not have enough shares to complete this transaction"))
 
     return redirect("/")
 
@@ -191,7 +193,7 @@ def quote():
 @app.route("/error")
 def error():
     error_message = request.args["error"]
-    return srender_template("error.html", error=error_message)
+    return render_template("error.html", error=error_message)
 
 
 if __name__ == "__main__":

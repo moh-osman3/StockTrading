@@ -2,6 +2,20 @@ import requests as re
 import sqlite3
 import os
 
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+-- get_stock_data --
+
+This function calls the IEX api to get real time stock data.
+
+Params:
+  symbol [in]   stock symbol for lookup
+
+Returns:
+  dictionary with stock name, symbol and latest price
+  None on failure
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
 def get_stock_data(symbol):
     # try and connect to iex api
     try:
@@ -26,6 +40,23 @@ def get_stock_data(symbol):
     # failed to get stock quote
     return None
 
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+-- complete_buy_transaction --
+
+This function updates/inserts the requested transaction
+in the sqlite3 database.
+
+Params:
+  symbol [in]   stock symbol
+  shares [in]   number of shares to purchase
+  price  [in]   price per share in transaction
+  cost   [in]   total cost of order
+  user   [in]   current user requesting transaction
+
+Returns:
+  No return value 
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 def complete_buy_transaction(symbol, shares, price, cost, user):
     # create a table for the specific user if one does not already exist
@@ -73,6 +104,26 @@ def complete_buy_transaction(symbol, shares, price, cost, user):
         db.commit()
 
 
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+-- complete_sell_transaction --
+
+This function updates the requested transaction
+in the sqlite3 database. Function will indicate
+failure if there are no available shares to sell.
+
+Params:
+  symbol [in]   stock symbol
+  shares [in]   number of shares to purchase
+  price  [in]   price per share in transaction
+  cost   [in]   total cost of order
+  user   [in]   current user requesting transaction
+
+Returns:
+  0 on Success
+  -1 on missing table
+  -2 on not enough shares available
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
 def complete_sell_transaction(symbol, shares, price, cost, user):
     try:
         with sqlite3.connect("users.db") as db:
@@ -83,7 +134,7 @@ def complete_sell_transaction(symbol, shares, price, cost, user):
             fetch = cur.fetchall()
 
             if fetch == []:
-                return -1
+                return -2
             
             cur_total = fetch[0][0]
             cur_shares = fetch[0][1]
@@ -94,6 +145,9 @@ def complete_sell_transaction(symbol, shares, price, cost, user):
             return_on_invest = total_value - total_cost
             print(f"cur total: {cur_total}, {cur_shares}")
 
+            if total_shares < 0:
+                return -2
+                
             cur.execute(f"UPDATE {user} "
                         f"SET numshares='{total_shares}', "
                         f"avgcostper='{avgper}', "
@@ -106,8 +160,5 @@ def complete_sell_transaction(symbol, shares, price, cost, user):
             db.commit()
         return 0
     except sqlite3.OperationalError:
+        # table is not found which means no buy orders have been fulfilled
         return -1
-     
-
-if __name__ == "__main__":
-    get_stock_data("NFLX")
