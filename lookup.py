@@ -92,7 +92,6 @@ def complete_sell_transaction(symbol, shares, price, cost, user):
             total_shares = cur_shares - shares
             avgper = round(total_cost / total_shares, 2) # avg cost per share
             total_value = round(price * total_shares, 2) # current market value of stocks
-            print(total_value)
             print(total_cost)
             return_on_invest = total_value - total_cost
             print(f"cur total: {cur_total}, {cur_shares}")
@@ -110,7 +109,6 @@ def complete_sell_transaction(symbol, shares, price, cost, user):
         return 0
     except sqlite3.OperationalError:
         return -1
-        return render_template("error.html", error="You must buy stocks before trying to sell!")
      
 
 if __name__ == "__main__":
