@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 from sqlite3 import Error
-from lookup import get_stock_data
+from lookup import get_stock_data, complete_buy_transaction
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -125,6 +125,8 @@ def logout():
     session['user'] = None
     return redirect("/")
 
+
+@app.route("/sell", methods=["GET", "POST"])
 @app.route("/buy", methods=["GET", "POST"])
 def request_transaction():
     # make sure user is logged in before they can buy
@@ -133,7 +135,7 @@ def request_transaction():
         return render_template("error.html", error="Please sign up or log in")
 
     if request.method == "GET":
-        return render_template("buy.html")
+        return render_template("transaction.html")
     
     requested_symbol = request.form.get("stock-symbol")
     num_shares = request.form.get("numshares")
@@ -141,7 +143,7 @@ def request_transaction():
     print(quote)
 
     return redirect(url_for("quote", name=quote["name"], price=quote["price"],
-                    symbol=quote["symbol"], shares=num_shares))
+                    symbol=quote["symbol"], shares=num_shares, transaction_type=request.url_rule))
 
 
 @app.route("/quote", methods=["GET", "POST"])
@@ -150,8 +152,7 @@ def quote():
     price = float(request.args["price"])
     symbol = request.args["symbol"]
     shares = float(request.args["shares"])
-    cost = shares * price
-
+    cost = round(price * shares, 2)
     if request.method == "GET":
         return render_template("quote.html", name=name, price=price,
                                symbol=symbol, shares=shares, cost=cost)
@@ -177,55 +178,9 @@ def quote():
         
         cur.execute("UPDATE users SET balance='{}' WHERE username='{}'".format(cur_balance - cost, session["user"]))
         db.commit()
-    
 
-        print(f"UPDATE {session['user']} SET numshares='{shares}',"
-              f"costper='{price}', totalcost='{cost}'")
-    # create a table for the specific user if one does not already exist
-    with sqlite3.connect("users.db") as db:
-        cur = db.cursor()
-
-        cur.execute(f"CREATE TABLE if not exists {session['user']} ("
-                     "symbol VARCHAR(255) PRIMARY KEY,"
-                     "numshares INT,"
-                     "avgcostper FLOAT,"
-                     "totalcost FLOAT,"
-                     "return FLOAT)")
-
-        # I expect there is a more succinct way to run the below queries
-        # i.e INSERT OR UPDATE if symbol is in table
-        cur.execute(f"SELECT totalcost, numshares FROM {session['user']} "
-                    f"WHERE symbol='{symbol}'")
-        fetch = cur.fetchall()
-        print(fetch)
-        # if symbol is not found in table (first time buying stock)
-        if fetch == []:
-            cur.execute(f"INSERT INTO {session['user']} VALUES "
-                        f"('{symbol}', '{shares}', '{price}', '{cost}', '{0}')")
-        else:   
-            cur_total = fetch[0][0]
-            cur_shares = fetch[0][1]
-            total_cost = cur_total + cost # amt paid for shares
-            total_shares = shares + cur_shares
-            avgper = total_cost / total_shares # avg cost per share
-            total_value = price * total_shares # current market value of stocks
-            print(total_value)
-            print(total_cost)
-            return_on_invest = total_value - total_cost
-            print(f"cur total: {cur_total}, {cur_shares}")
-
-            cur.execute(f"UPDATE {session['user']} "
-                        f"SET numshares='{total_shares}', "
-                        f"avgcostper='{total_shares}', "
-                        f"totalcost='{total_cost}', "
-                        f"return='{return_on_invest}'")
-        
-        for row in cur.execute(f"SELECT * FROM {session['user']}"):
-            print(row)
-        db.commit()
-
-        
-
+    if request.args["transaction_type"] == "/buy":
+        complete_buy_transaction(symbol, shares, price, cost, session['user'])
 
     return redirect("/")
 
