@@ -178,7 +178,7 @@ def quote():
         print(f"UPDATE {session['user']} SET numshares='{shares}',"
               f"costper='{price}', totalcost='{cost}'")
     # create a table for the specific user if one does not already exist
-    with sqlite3.connect("users") as db:
+    with sqlite3.connect("users.db") as db:
         cur = db.cursor()
 
         cur.execute("CREATE TABLE if not exists {} ("
@@ -206,11 +206,6 @@ def quote():
         for row in cur.execute(f"SELECT * FROM {session['user']}"):
             print(row)     
         db.commit()
-        #            f"WHERE symbol='{}') 
-        #cur.execute(f"IF EXISTS (SELECT * FROM {session["user"]} WHERE symbol='{symbol}')"
-        #            f"UPDATE {session["user"]} SET numshares='{num_shares}', costper='{price}', totalcost='{}'"
-        #            f"WHERE symbol='{}'"
-        #            "ELSE ")
 
         
 
