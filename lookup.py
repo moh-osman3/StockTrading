@@ -112,11 +112,3 @@ def complete_sell_transaction(symbol, shares, price, cost, user):
 
 if __name__ == "__main__":
     get_stock_data("NFLX")
-
-
-git filter-branch -f --env-filter "
-    GIT_AUTHOR_NAME='moh-osman3'
-    GIT_AUTHOR_EMAIL='momentum614@gmail.com'
-    GIT_COMMITTER_NAME='moh-osman3'
-    GIT_COMMITTER_EMAIL='momentum614@gmail.com'
-" HEAD
