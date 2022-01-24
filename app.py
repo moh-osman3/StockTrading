@@ -206,6 +206,7 @@ def quote():
     return redirect("/")
 
 
+@app.route("/lookup", methods=["GET", "POST"])
 @app.route("/error")
 def error():
     error_message = request.args["error"]

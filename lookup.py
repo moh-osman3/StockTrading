@@ -21,7 +21,7 @@ def get_stock_data(symbol):
     try:
         token = os.environ['API_KEY']
         response = re.get("https://cloud.iexapis.com/stable/stock/"
-                          "{}/quote?token={}&last=3".format(symbol, token))
+                          "{}/quote?token={}".format(symbol, token))
     except re.exceptions.ConnectionError:
         print("Could not connect to the url")
         return None
@@ -39,6 +39,42 @@ def get_stock_data(symbol):
         print("unable to find desired information from stock quote")
 
     # failed to get stock quote
+    return None
+
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+-- get_stock_history --
+
+This function calls the IEX api to get stock history.
+
+Params:
+  symbol [in]   stock symbol for lookup
+
+Returns:
+  dictionary with stock name, symbol and latest price
+  None on failure
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+def get_stock_history(symbol):
+    try:
+        token = os.environ["API_KEY"]
+        response = re.get(f"https://cloud.iexapis.com/stable/stock/{symbol}/"
+                          f"chart/30d?token={token}&chartCloseOnly=true")
+    except re.exceptions.ConnectionError:
+        print("failed to connect")
+        return None
+
+    json = response.json()
+
+    try:
+        history = {}
+        history['date'] = json['date']
+        history['close'] = json['close']
+        return history
+    except KeyError:
+        print("Unable to find desired stock history info")
+    
+    # failed to get stock history
     return None
 
 
@@ -159,4 +195,4 @@ def complete_sell_transaction(symbol, shares, price, cost, user):
 
 
 if __name__ == "__main__":
-    get_stock_data("NFLX")
+    get_stock_history("NFLX")
