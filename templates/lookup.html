@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if show_get == True %}
+    <h1>Lookup A Stock!</h1>
+    <form class="appform" method="post">
+      <label for="symbol">Stock Symbol:</label><br>
+      <input type="text" id="symbol" name="symbol" maxlength="255" required>
+      <input type="submit" id="submit" name="submit" value="Lookup!">
+    </form>
+  {% else %}
+    <h1>Prev 30 days:</h1><br>
+
+    <img src="../static/history.png" alt="History of Stock" width="600" height="600"><br><br>
+
+    <button type="button" href="#buy">Buy</button>
+
+  {% endif %}
+
+{% endblock %}

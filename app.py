@@ -1,7 +1,16 @@
-from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 from sqlite3 import Error
-from lookup import get_stock_data, complete_buy_transaction, complete_sell_transaction
+import datetime as dt
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from flask import (
+    Flask, render_template, request,
+    redirect, url_for, session
+)
+from lookup import (
+    get_stock_data, complete_buy_transaction,
+    complete_sell_transaction, get_stock_history
+)
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -207,6 +216,35 @@ def quote():
 
 
 @app.route("/lookup", methods=["GET", "POST"])
+def lookup():
+    show_get = True # show template for get request
+    if request.method == "GET":
+        return render_template("lookup.html", show_get=show_get)
+    
+    show_get = False
+    symbol = request.form.get("symbol")
+    history = get_stock_history(symbol)
+    print(history['date'])
+    x = [dt.datetime.strptime(d,'%Y-%m-%d').date() for d in history['date']]
+    y = history['close']
+
+    # disables GUI and fixes mem leak issue
+    plt.switch_backend('Agg') 
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=5))
+    plt.plot(x,y)
+    plt.gcf().autofmt_xdate()
+    plt.savefig("static/history.png")
+    return render_template("lookup.html", show_get=show_get)
+
+
+
+
+
+
+
+    
 @app.route("/error")
 def error():
     error_message = request.args["error"]

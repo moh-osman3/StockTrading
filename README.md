@@ -3,9 +3,9 @@ Creating a stock trading app with play money. Using flask and sqlite3 in the bac
 
 Dependencies:
 
-This project depends on flask and requests library.  
+This project depends on flask, requests, and matplotlib library.  
 
-```pip3 install requests flask```
+```pip3 install requests flask matplotlib```
 
 This project depends on using the IEX api to get stock quotes.  To use this app you must create an account (free version is sufficient) and run ``` export API_KEY=YOUR_KEY_HERE ```
 where YOUR_KEY_HERE is the api key associated with your account (starts with "pk")

@@ -68,8 +68,8 @@ def get_stock_history(symbol):
 
     try:
         history = {}
-        history['date'] = json['date']
-        history['close'] = json['close']
+        history['date'] = [item['date'] for item in json]
+        history['close'] = [item['close'] for item in json]
         return history
     except KeyError:
         print("Unable to find desired stock history info")

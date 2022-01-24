@@ -20,6 +20,12 @@ a {
     color: purple;
 }
 
+img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .green {
     color: green;
 }
