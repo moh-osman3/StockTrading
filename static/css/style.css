@@ -9,9 +9,25 @@ h1 {
     font-size: 3vw;
 }
 
+h2 {
+    color: black;
+    text-align: center;
+    font-size: 2vw;
+    font-weight: bold;
+}
+
 a {
     color: purple;
 }
+
+.green {
+    color: green;
+}
+
+.red {
+    color: red;
+}
+
 .navbar {
     background-color: rgb(138, 189, 184);
     padding: 2vw;
@@ -56,3 +72,10 @@ a {
     font-size: 2vw;
     font-weight: bold;
 }
+
+table, th, td {
+    border: 1px solid black;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1.5rem;
+  }

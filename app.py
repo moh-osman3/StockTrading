@@ -40,13 +40,29 @@ db.commit()
 
 @app.route("/")
 def index():
+    summary = False # if user isn't logged in don't load summary
     if "user" not in session or session["user"] == None:
         session["user"] = None
         return render_template("index.html",
-           display="Sign up or Login to start trading today!")
+           display="Sign up or Login to start trading today!", show_summary=summary)
 
+    summary = True # user is logged in at this point
+    with sqlite3.connect("users.db") as db:
+        cur = db.cursor()
+        cur.execute(f"CREATE TABLE if not exists {session['user']} ("
+                    "symbol VARCHAR(255) PRIMARY KEY,"
+                    "numshares INT,"
+                    "avgcostper FLOAT,"
+                    "totalcost FLOAT,"
+                    "return FLOAT)")
+
+        cur.execute(f"SELECT * FROM {session['user']}")
+        fetch = cur.fetchall()
+        total = sum([item[-1] for item in fetch])
+        print(total)
     return render_template("index.html",
-       display="Welcome, {}!".format(session["user"]))
+       display="Welcome, {}!".format(session["user"]),
+       show_summary=summary, data=fetch, total=total)
 
 
 @app.route("/signup", methods=["GET", "POST"])

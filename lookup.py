@@ -21,12 +21,13 @@ def get_stock_data(symbol):
     try:
         token = os.environ['API_KEY']
         response = re.get("https://cloud.iexapis.com/stable/stock/"
-                          "{}/quote?token={}".format(symbol, token))
+                          "{}/quote?token={}&last=3".format(symbol, token))
     except re.exceptions.ConnectionError:
         print("Could not connect to the url")
         return None
 
     quote = response.json()
+    print(quote)
     # get desired info from the response
     try:
         serve = {}
@@ -62,13 +63,6 @@ def complete_buy_transaction(symbol, shares, price, cost, user):
     # create a table for the specific user if one does not already exist
     with sqlite3.connect("users.db") as db:
         cur = db.cursor()
-
-        cur.execute(f"CREATE TABLE if not exists {user} ("
-                     "symbol VARCHAR(255) PRIMARY KEY,"
-                     "numshares INT,"
-                     "avgcostper FLOAT,"
-                     "totalcost FLOAT,"
-                     "return FLOAT)")
 
         # I expect there is a more succinct way to run the below queries
         # i.e INSERT OR UPDATE if symbol is in table
@@ -147,7 +141,7 @@ def complete_sell_transaction(symbol, shares, price, cost, user):
 
             if total_shares < 0:
                 return -2
-                
+
             cur.execute(f"UPDATE {user} "
                         f"SET numshares='{total_shares}', "
                         f"avgcostper='{avgper}', "
@@ -162,3 +156,7 @@ def complete_sell_transaction(symbol, shares, price, cost, user):
     except sqlite3.OperationalError:
         # table is not found which means no buy orders have been fulfilled
         return -1
+
+
+if __name__ == "__main__":
+    get_stock_data("NFLX")

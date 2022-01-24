@@ -1,4 +1,33 @@
 {% extends "layout.html" %}
 {% block body %}
-    <h1>{{ display }}</h1>
+    <h1>{{ display }}</h1><br><br>
+  {% if show_summary == True %}
+    <h1>Portfolio Summary</h1>
+
+    {% if total >= 0 %}
+      <h2 class="green">Overall Return: +{{ total }}</h2>
+    {% else %}
+      <h2 class="red">Overall Return: {{ total }}</h2>
+    {% endif %}
+      
+
+    <table class="summary-table">
+        <tr>
+            <th>Stock Symbol</th>
+            <th>Shares Owned</th>
+            <th>Average Cost Per Share</th>
+            <th>Total Cost</th>
+            <th>Return On Investment</th>
+        </tr>
+        {% for item in data %}
+          <tr>
+            {% for i in item %}
+              <td>
+                {{ i }}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+    </table>
+  {% endif %}
 {% endblock %}
