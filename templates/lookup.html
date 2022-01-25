@@ -12,23 +12,6 @@
 
     <img id="history-graph" src="../static/history.png" alt="History of Stock" width="600" height="600"><br>
 
-    <script>
-      function generateGraph(symbol, time) {
-        var xml = new XMLHttpRequest();
-        xml.onreadystatechange = function() {
-          if (xml.status == 200) {
-            var timestamp = new Date().getTime();
-            var image = document.getElementById('history-graph'); 
-            image.src = "../static/history.png?t=" + timestamp;
-            document.getElementById("title").innerText = "Previous " + time + " days:"
-          }
-        }
-        xml.open("POST", "/lookup?symbol=" + symbol + "&time=" + time + "d", true);
-        xml.send();
-      }
-    </script>
-
-
     <div class="button-lookup">
       <form method="post" onclick="generateGraph('{{ symbol }}', '7')">
         <button type="button">7d</button>
