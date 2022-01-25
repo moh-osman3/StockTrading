@@ -50,7 +50,7 @@ db.commit()
 @app.route("/")
 def index():
     summary = False # if user isn't logged in don't load summary
-    if "user" not in session or session["user"] == None:
+    if "user" not in session.keys() or session["user"] == None:
         session["user"] = None
         return render_template("index.html",
            display="Sign up or Login to start trading today!", show_summary=summary)
@@ -155,7 +155,7 @@ def logout():
 def request_transaction():
     transaction_type = str(request.url_rule).lstrip("/")
     # make sure user is logged in before they can buy
-    if session["user"] == None:
+    if "user" not in session.keys() or session["user"] == None:
         return redirect(url_for("error", error="Please sign up or log in"))
 
     if request.method == "GET":
@@ -223,7 +223,12 @@ def lookup():
     
     show_get = False
     symbol = request.form.get("symbol")
-    history = get_stock_history(symbol)
+    time = "7d"
+    if symbol == None:
+        symbol = request.args.get("symbol")
+        time = request.args.get("time")
+    print(symbol)
+    history = get_stock_history(symbol, time)
     print(history['date'])
     x = [dt.datetime.strptime(d,'%Y-%m-%d').date() for d in history['date']]
     y = history['close']
@@ -232,17 +237,11 @@ def lookup():
     plt.switch_backend('Agg') 
 
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
-    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=5))
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=3))
     plt.plot(x,y)
     plt.gcf().autofmt_xdate()
     plt.savefig("static/history.png")
-    return render_template("lookup.html", show_get=show_get)
-
-
-
-
-
-
+    return render_template("lookup.html", show_get=show_get, symbol=symbol)
 
     
 @app.route("/error")

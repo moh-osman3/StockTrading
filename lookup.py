@@ -55,11 +55,11 @@ Returns:
   None on failure
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-def get_stock_history(symbol):
+def get_stock_history(symbol, time):
     try:
         token = os.environ["API_KEY"]
         response = re.get(f"https://cloud.iexapis.com/stable/stock/{symbol}/"
-                          f"chart/30d?token={token}&chartCloseOnly=true")
+                          f"chart/{time}?token={token}&chartCloseOnly=true")
     except re.exceptions.ConnectionError:
         print("failed to connect")
         return None
